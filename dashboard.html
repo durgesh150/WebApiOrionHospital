@@ -1,0 +1,326 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <script src="Scripts/bootstrap.min.js"></script>
+    <link href="Content/bootstrap.min.css" rel="stylesheet" />
+</head>
+<body class="m-5">
+    <span id="spanUsername" class="text-muted"></span>
+    <div class="well">
+        <input type="button" id="loadHospitalData" class="btn btn-success" value="Load Patient Data" />
+        <button type="button" id="logoutbtn" class="navbar-nav btn btn-outline-danger ms-auto" data-bs-toggle="modal" data-bs-target="#LogoutConfirm">
+            Logout<svg xmlns="http://www.w3.org/2000/svg" width="25" height="20" fill="currentColor" class="bi bi-box-arrow-right m-1" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z" />
+                <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z" />
+            </svg>
+        </button>
+    </div>
+    <div id="divError" class="alert alert-danger collapse">
+        <a id="linkclose" class="btn-close" href="#">&times;</a>
+        <div id="divErrorText"></div>
+    </div>
+    <div class="well visually-hidden" id="divData">
+        <table class="table table-hover table-bordered  justify-content-center text-center m-4 paginate" id="tbldata">
+            <thead class="bg-secondary text-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Full Name</th>
+                    <th>DOB</th>
+                    <th>Gender</th>
+                    <th>Health Issues</th>
+                    <th>Address</th>
+                    <th>City</th>
+                    <th colspan="2">Action</th>
+                </tr>
+            </thead>
+            <tbody class="bg-secondary bg-opacity-25" id="tblbody">
+            </tbody>
+        </table>
+    </div>
+    <div id="pagination-container"></div>
+    <div class="modal" tabindex="-1" id="sessionmodal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Session Expired!</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Please Close this message to Login Again!</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal" tabindex="-1" id="Deletemodal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Delete!!!</h5>
+
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="No"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Do You Really Want to Delete ?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success" data-bs-dismiss="modal">Yes</button>
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">No</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="Scripts/jquery-3.6.4.min.js"></script>
+    <script src="Scripts/bootstrap.min.js"></script>
+    <!-- Include DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/dt-1.11.4/datatables.min.css" />
+
+    <!-- Include DataTables JS -->
+    <script type="text/javascript" src="https://cdn.datatables.net/v/dt/dt-1.11.4/datatables.min.js"></script>
+
+    <script type="text/javascript">
+        //$(document).ready(function () {
+        //    if (sessionStorage.getItem('accessToken') == null) {
+        //        window.location.href = "login.html";
+        //    }
+        //    $('#linkclose').click(function () {
+        //        $('#divError').hide('fade');
+        //    });
+        //    $('#loadHospitalData').click(function () {
+        //        $.ajax({
+        //            url: '/api/hospital',
+        //            method: 'GET',
+        //            headers: {
+        //                'Authorization': 'Bearer' + sessionStorage.getItem('accessToken')
+
+        //            },
+        //            success: function () {
+        //                $('divData').removeClass('d-none');
+        //                data.forEach(patient => {
+        //                    const row = `
+        //                                      <tr>
+        //                                        <td>${patient.id}</td>
+        //                                        <td>${patient.fullName}</td>
+        //                                        <td>${patient.dob}</td>
+        //                                        <td>${patient.gender}</td>
+        //                                        <td>${patient.healthIssues}</td>
+        //                                        <td>${patient.address}</td>
+        //                                        <td>${patient.city}</td>
+        //                                      </tr>
+        //                                    `;
+        //                    tableBody.insertAdjacentHTML('beforeend', row);
+        //                });
+        //            },
+        //            error: function (jqHRX) {
+        //                $('#divErrorText').text(jqHRX.responseText);
+        //                $('#divError').show('fade');
+        //            }
+
+
+
+        //        });
+        //    });
+        $(document).ready(function () {
+
+            $('#linkclose').click(function () {
+                $('#divError').hide('fade');
+            });
+            $('#spanUsername').text('Welcome ' + sessionStorage.getItem('username'));
+            $('#logoutbtn').click(function () {
+                sessionStorage.removeItem('accessToken');
+                window.location.href = "login.html";
+            });
+
+            if (sessionStorage.getItem('accessToken') == null) {
+                window.location.href = "login.html";
+            }
+            $('#sessionmodal').on('hidden.bs.modal', function () {
+                window.location.href = "login.html";
+            });
+
+
+            //$('#tbldata').on('click', 'button[data-action="edit"]', function () {
+            //    const id = $(this).data('id');
+            //    console.log('Selected row ID:', id);
+
+            //    const firstNameSelector = '#FirstName' + id;
+            //    console.log('First Name selector:', firstNameSelector);
+            //    const firstNameCell = $(firstNameSelector);
+            //    console.log('First Name cell:', firstNameCell);
+            //    const firstName = firstNameCell.text().trim();
+            //    console.log('First Name:', firstName);
+
+            //    // Add the following code to check the value of `firstName`
+            //    if (firstName !== '') {
+            //        console.log('First name found:', firstName);
+            //    } else {
+            //        console.log('Error: first name not found');
+            //    }
+
+            //    const lastNameSelector = '#LastName' + id;
+            //    console.log('Last Name selector:', lastNameSelector);
+            //    const lastNameCell = $(lastNameSelector);
+            //    console.log('Last Name cell:', lastNameCell);
+            //    const lastName = lastNameCell.text().trim();
+            //    console.log('Last Name:', lastName);
+
+            //    const genderSelector = '#Gender' + id;
+            //    console.log('Gender selector:', genderSelector);
+            //    const genderCell = $(genderSelector);
+            //    console.log('Gender cell:', genderCell);
+            //    const gender = genderCell.text().trim();
+            //    console.log('Gender:', gender);
+
+            //    const healthIssuesSelector = '#HealthIssues' + id;
+            //    console.log('Health Issues selector:', healthIssuesSelector);
+            //    const healthIssuesCell = $(healthIssuesSelector);
+            //    console.log('Health Issues cell:', healthIssuesCell);
+            //    const healthIssues = healthIssuesCell.text().trim();
+            //    console.log('Health Issues:', healthIssues);
+
+            //    const addressSelector = '#Address' + id;
+            //    console.log('Address selector:', addressSelector);
+            //    const addressCell = $(addressSelector);
+            //    console.log('Address cell:', addressCell);
+            //    const address = addressCell.text().trim();
+            //    console.log('Address:', address);
+
+            //    const citySelector = '#City' + id;
+            //    console.log('City selector:', citySelector);
+            //    const cityCell = $(citySelector);
+            //    console.log('City cell:', cityCell);
+            //    const city = cityCell.text().trim();
+            //    console.log('City:', city);
+
+            //    const patientData = {
+            //        FirstName: firstName,
+            //        LastName: lastName,
+            //        Gender: gender,
+            //        HealthIssues: healthIssues,
+            //        Address: address,
+            //        City: city
+            //    };
+            //    console.log('Patient data:', patientData);
+
+            //    const queryParams = new URLSearchParams(patientData);
+            //    const queryString = queryParams.toString();
+            //    const url = `update.html?${queryString}`;
+            //    console.log('URL:', url);
+
+            //    window.location.href = url;
+            //});
+            $('#tbldata').on('click', 'button[data-action="edit"]', function () {
+                var id = $(this).data('id');
+                window.location.href = 'update.html?id=' + id;
+            });
+
+
+            $('#tbldata').on('click', 'button[data-action="delete"]', function () {
+                var id = $(this).data('id');
+                var url = `/api/hospital/${id}`;
+
+                // Show delete confirmation modal
+                $('#Deletemodal').modal('show');
+
+                // Attach click event handler to "Yes" button in modal
+                $('#Deletemodal button.btn-success').click(function () {
+                    $.ajax({
+                        url: url,
+                        type: 'DELETE',
+                        success: function (result) {
+                            $('#loadHospitalData').click();
+                            console.log(result);
+                            // Code to update the table with the new data
+                        },
+                        error: function (xhr, ajaxOptions, thrownError) {
+                            console.log(xhr.status);
+                            console.log(thrownError);
+                        }
+                    });
+                });
+            });
+            $('#loadHospitalData').click(function () {
+                $.ajax({
+                    url: '/api/hospital',
+                    method: 'GET',
+                    headers: {
+                        'Authorization': 'Bearer ' + sessionStorage.getItem('accessToken')
+
+                    },
+                    success: function (data) { // Add data parameter here
+                        $('#divData').removeClass('visually-hidden');
+                        $('#tblbody').empty();
+
+
+                        data.forEach(patient => {
+                            const row = `
+                            <tr>
+                                <td>${patient.Id}</td>
+                                <td>${patient.FirstName + ' ' + patient.LastName}</td>
+                                <td>${patient.DOB}</td>
+                                <td>${patient.Gender}</td>
+                                <td>${patient.HealthIssues}</td>
+                                <td>${patient.Address}</td>
+                                <td>${patient.City}</td>
+                                <td>
+                                    <button type="button" class="btn btn-sm btn-primary" data-action="edit" data-id="${patient.Id}">
+                                        Edit
+                                    </button>
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-sm btn-danger" data-action="delete" data-id="${patient.Id}">
+                                        Delete
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                            $('#tblbody').append(row);
+                        });
+                    },
+                    error: function (jqHRX) {
+                        if (jqHRX.status == '401') {
+                            $('#sessionmodal').modal('show');
+                        }
+                        else {
+                            $('#divErrorText').text(jqHRX.responseText);
+                            $('#divError').show('fade');
+                        }
+                    }
+                });
+            });
+        });
+
+    </script>
+</body>
+</html>
+
+
+
+
+  pageSize = 3;
+            var pageCount = $(".paginate tbody tr").length / pageSize;
+            for (var i = 0; i < pageCount; i++) {
+                $("#pagination-container").append("<a href='#' class='pagination-link'>" + (i + 1) + "</a>");
+            }
+            $(".paginate tbody tr").hide();
+            $(".paginate tbody tr").slice(0, pageSize).show();
+            $("#pagination-container a:first").addClass("active");
+            $("#pagination-container a").on("click", function () {
+                if ($(this).hasClass("active")) {
+                    return false;
+                }
+                else {
+                    var currentPage = $(this).index();
+                    $("#pagination-container a").removeClass("active");
+                    $(this).addClass("active");
+                    $(".paginate tbody tr").hide();
+                    var grandTotal = pageSize * currentPage;
+                    for (var i = grandTotal - pageSize; i < grandTotal; i++) {
+                        $(".paginate tbody tr:eq(" + i + ")").show();
+                    }
+                }
+            });

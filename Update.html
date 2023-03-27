@@ -1,0 +1,138 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Hospital Information</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-4">
+        <h1 class="text-center mb-4">Update Hospital Information</h1>
+        <form class="form">
+            <input type="hidden" id="patientId" name="patientId">
+            <div class="form-group">
+                <label class="control-label" for="FirstName">First Name</label>
+                <input class="form-control" type="text" id="FirstName" name="FirstName" value="" />
+            </div>
+            <div class="form-group">
+                <label class="control-label" for="LastName">Last Name</label>
+                <input class="form-control mb-3" type="text" id="LastName" name="LastName" />
+            </div>
+            <div class="form-outline mb-4 justify-content-center">
+                <label class="justify-content-center text-black mb-2">Gender</label>
+                <div class="radio-inline">
+                    <input type="radio" id="Male" name="Gender" value="Male" /><span class="text-black">Male</span>
+                    <input type="radio" id="Female" name="Gender" value="Female" /><span class="text-black">Female</span>
+                    <input type="radio" id="Others" name="Gender" value="Others" /><span class="text-black">Others</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label mb-2" for="HealthIssues">Health Issues</label>
+                <input class="form-control mb-2" type="text" id="HealthIssues" name="HealthIssues" />
+            </div>
+            <div class="form-group">
+                <label class="control-label mb-2" for="Address">Address</label>
+                <input class="form-control mb-2" type="text" id="Address" name="Address" />
+            </div>
+            <div class="form-group">
+                <label class="control-label mb-2" for="City">City</label>
+                <input class="form-control mb-2" type="text" id="City" name="City" />
+            </div>
+            <input type="submit" class="btn btn-success btn-block btn-lg gradient-custom-4 text-body m-auto" value="Update" />
+        </form>
+
+    </div>
+
+    <div class="modal fade" tabindex="-1" id="updateHospitalModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Update Hospital Information</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p id="updateStatus"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="Scripts/jquery-3.6.4.min.js"></script>
+    <script src="Scripts/bootstrap.min.js"></script>
+    <script type="text/javascript">
+
+
+        $(document).ready(function () {
+            const queryParams = new URLSearchParams(window.location.search);
+            const id = queryParams.get('id');
+            
+            if (sessionStorage.getItem('accessToken') == null) {
+                window.location.href = "login.html";
+            }
+            // Make AJAX request to get patient data for given ID
+            $.ajax({
+                url: `/api/hospital/${id}`,
+                type: 'GET',
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader('Authorization', 'Bearer ' + xhr.access_token);
+                },
+                success: function (data) {
+                    // Populate form inputs with patient data
+                    $('#patientId').val(data.Id);
+                    $('#FirstName').val(data.FirstName);
+                    $('#LastName').val(data.LastName);
+                    $(`input[name="Gender"][value="${data.Gender}"]`).prop('checked', true);
+                    $('#HealthIssues').val(data.HealthIssues);
+                    $('#Address').val(data.Address);
+                    $('#City').val(data.City);
+                },
+                error: function (xhr, textStatus, errorThrown) {
+                    console.log(xhr.responseText);
+                }
+            });
+
+            $('form').submit(function (event) {
+                event.preventDefault();
+              
+                var url = `/api/hospital/${id}`;
+
+                // AJAX request to update patient data
+                const patientData = {
+                    Id: $(this).data('id'),
+                    FirstName: $('#FirstName').val(),
+                    LastName: $('#LastName').val(),
+                    Gender: $('input[name="Gender"]:checked').val(),
+                    HealthIssues: $('#HealthIssues').val(),
+                    Address: $('#Address').val(),
+                    City: $('#City').val()
+                };
+                $.ajax({
+                    url: url,
+                    type: 'PUT',
+                    contentType: 'application/json',
+                    data: JSON.stringify(patientData),
+                    beforeSend: function (xhr) {
+                        xhr.setRequestHeader('Authorization', 'Bearer ' + xhr.access_token);
+                    },
+                    success: function () {
+                        // Redirect to the patient list page
+                        window.location.href = 'dashboard.html';
+                    },
+                    error: function (xhr, textStatus, errorThrown) {
+                        console.log(xhr.responseText);
+                    }
+                });
+            });
+        });
+
+
+
+    </script>
+</body>
+</html>
+
