@@ -1,11 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using System.Web;
 using System.Web.Http;
-using System.Web.Mvc;
 
 
 namespace WebApiOrionHospital.Controllers
@@ -13,16 +9,29 @@ namespace WebApiOrionHospital.Controllers
 
     public class HospitalController : ApiController
     {
-        // GET: Hospital
+        
         [System.Web.Http.Authorize]
-        public IEnumerable<Patientdata> Get(int page = 1, int pageSize = 10)
+        public IHttpActionResult Get([FromQuery] string searchInput = "", int page = 1, int pageSize = 10)
         {
             using (HospitaldbEntities entities = new HospitaldbEntities())
             {
-                var skip = (page - 1) * pageSize;
-                return entities.Patientdatas.ToList();
+                var query = entities.Patientdatas.AsQueryable();
+                if (!string.IsNullOrEmpty(searchInput))
+                {
+                    query = query.Where(p => p.FirstName.ToLower().Contains(searchInput.ToLower())||p.HealthIssues.ToLower().Contains(searchInput.ToLower()));
+                }
+                var totalCount = query.Count();
+                var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+                var pagedPatients = query.OrderBy(p => p.Id).Skip((page - 1) * pageSize).Take(pageSize).ToList();
+                var viewModel = new
+                {
+                    Patients = pagedPatients,
+                    TotalPages = totalPages
+                };
+                return Ok(viewModel);
             }
         }
+
 
         public Patientdata Get(int id)
         {
@@ -44,7 +53,7 @@ namespace WebApiOrionHospital.Controllers
             }
         }
         
-        public void Put(int id, [FromBody] Patientdata updatedPatient)
+        public void Put(int id, [System.Web.Http.FromBody] Patientdata updatedPatient)
         {
             try
             {

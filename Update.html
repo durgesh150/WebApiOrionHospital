@@ -122,6 +122,7 @@
                     success: function () {
                         // Redirect to the patient list page
                         window.location.href = 'dashboard.html';
+                        $('#loadHospitalData').click();
                     },
                     error: function (xhr, textStatus, errorThrown) {
                         console.log(xhr.responseText);
